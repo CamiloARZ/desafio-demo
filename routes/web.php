@@ -13,6 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'ParameterController@index')->name('parameter.index');
+Route::delete('parameter/delete', 'ParameterController@parameterDestroy')->name('parameter.delete');
+Route::get('parameter/edit', 'ParameterController@edit')->name('parameter.edit');
