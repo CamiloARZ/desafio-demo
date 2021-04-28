@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Parameter;
 use DataTables; 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+use App\Parameter;
 
 class ParameterController extends Controller
 {
@@ -47,7 +49,32 @@ class ParameterController extends Controller
      */
     public function store(Request $request)
     {
-        //
+
+        $rules = [
+            'nombre'        => 'required|string|unique:parameters',
+            'abreviatura'   => 'required|string',
+            'unidad_medida' => 'required|string',
+            'descripcion'   => 'nullable|string',
+        ];
+
+
+        try {
+
+            $this->validate($request, $rules);
+
+            $new = new Parameter;
+                $new->nombre        = $request->nombre;
+                $new->abreviatura   = $request->abreviatura;
+                $new->unidad_medida = $request->unidad_medida;
+                $new->descripcion   = $request->descripcion;
+            $new->save();
+            
+            return response()->json(['success' => true], 200);
+
+        }catch (ValidationException $exception) {
+
+            return response()->json(['errors' => $exception->errors()], 422);
+        }
     }
 
     /**

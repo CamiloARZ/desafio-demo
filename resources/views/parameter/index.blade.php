@@ -20,12 +20,15 @@
 <div class="container">
     <div class="card">
         <div class="card-header">
-            List Parameters
+            <div class="row d-flex d-flex justify-content-between">
+                <h6 class="ml-2 mt-2">Listado de parámetros</h6>
+                <button type="button" class="btn btn-sm btn-primary | mx-3" onclick="create()">Ingresar parametro</button>
+            </div>
         </div>
         <div class="card-body">
-            <table id="paramerts_list" class="table">
+            <table id="paramerts_list" class="table table-sm w-100">
                 <thead class="thead-dark">
-                    <tr>
+                    <tr class="text-center">
                         <th scope="col"></th>
                         <th scope="col">#</th>
                         <th scope="col">Nombre</th>
@@ -38,13 +41,94 @@
             </table>
             
         </div>
+    </div>
+
+    {{-- Modal de ingreso  --}}
+    <div class="modal fade" id="createModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Ingresar parametro</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    <div class="content">
+                        <div class="row">
+                            {{-- Nombre  --}}
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="nombre">Nombre: <span class="text-danger ml-2">*</span></label>
+                                    <input  type="text" 
+                                            class="form-control" 
+                                            id="nombre" 
+                                            name="nombre" 
+                                            required>
+                                    <div id="error-nombre" class="d-none">
+                                        <p id="text-nombre" class="text-danger"></p>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            {{-- Abreviatura  --}}
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="abreviatura">Abreviatura: <span class="text-danger ml-2"></span></label>
+                                    <input  type="text" 
+                                            class="form-control" 
+                                            id="abreviatura" 
+                                            name="abreviatura" 
+                                            required>
+                                    <div id="error-abreviatura" class="d-none">
+                                        <p id="text-abreviatura" class="text-danger"></p>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            {{-- Unidad de medida  --}}
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="unidad_medida">Unidad: <span class="text-danger ml-2"></span></label>
+                                    <input  type="text" 
+                                            class="form-control" 
+                                            id="unidad_medida" 
+                                            name="unidad_medida" 
+                                            required>
+                                    <div id="error-unidad_medida" class="d-none">
+                                        <p id="text-unidad_medida" class="text-danger"></p>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            {{-- descripcion  --}}
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="descripcion">Descripción: <span class="text-danger ml-2"></span></label>
+                                    <textarea name="descripcion" id="descripcion" rows="3" class="form-control w-100"></textarea>
+                                    <div id="error-descripcion" class="d-none">
+                                        <p id="text-descripcion" class="text-danger"></p>
+                                    </div>
+                                </div>
+                            </div>
+    
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="store()">Ingresar</button>
+                </div>
+            </div>
         </div>
+    </div>
+
 </div>
 
 @endsection
 
 @section('js_after')
-
 
         {{-- dataTables jS--}}
         <script src="{{ asset('js/plugins/datatables/jquery.dataTables.min.js') }}"></script>
@@ -55,18 +139,21 @@
         <script src="{{ asset('js/plugins/datatables/buttons/buttons.flash.min.js') }}"></script>
         <script src="{{ asset('js/plugins/datatables/buttons/buttons.colVis.min.js') }}"></script>
         <!-- SweetAlert2 -->
-        {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.2.0/sweetalert2.all.min.js"></script> --}}
         <script src="{{ asset('js/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
 
-
-
-
 <script>
+
+
+    // ****************************************************************************************************************
+    // 									       Document Ready
+    // ****************************************************************************************************************
     $(document).ready(function(){
 
+
+        // **************************************** DataTable **********************************************************
         var table = $('#paramerts_list').DataTable({
-            bProcessing: true,
-            bStateSave: true,
+            // bProcessing: true,
+            // bStateSave: true,
             deferRender: true,
             responsive: true,
             processing: true,
@@ -115,52 +202,67 @@
                 }
             ]
         });
+    // ****************************************************************************************************************
+
     });
-
-    function deleted(value){
-
-        Swal.fire({
-            title: '¿Está seguro(a) que desea eliminar el parámetro?',
-            text: "Esta acción no es reversible!",
-            type: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminar!'
-            }).then((result) => {
-                if (result.value) {
-
-                    axios.delete("{{  route('parameter.delete') }}", {
-                        params: {
-                            id: value
-                        }
-                    })
-                    .then(function (response) {
-                        console.log(response);
-                        
-                        Swal.fire(
-                            'Deleted!',
-                            'Your file has been deleted.',
-                            'success'
-                        )
+    // ****************************************************************************************************************
 
 
-                        // reload datatable 
-                        var Table = $('#paramerts_list').DataTable();
-                            Table.ajax.reload();
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    })
-                }
-            })
+    // ****************************************************************************************************************
+    // 									       Create
+    // ****************************************************************************************************************
+    function create(){
+        clear();
+        $('#createModal').modal('show');
     }
+    // ****************************************************************************************************************
 
+    
+    // ****************************************************************************************************************
+    // 									       Store
+    // ****************************************************************************************************************
+    function store(){
+        axios.post("{{ route('parameter.store') }}", {
+            nombre          : document.getElementById('nombre').value,
+            abreviatura     : document.getElementById('abreviatura') .value,
+            unidad_medida   : document.getElementById('unidad_medida').value,
+            descripcion     : document.getElementById('descripcion').value
+        })
+        .then(function (response) {
+             
+            $('#createModal').modal('hide');
+
+            Swal.fire(
+                'Ingreso exitoso!',
+                'Se ingreso exitosamente el parámtro.',
+                'success'
+            )
+
+            clearErrors();
+        })
+        .catch(function (error) {
+            if(error.response.status == 422) {
+                clearErrors();
+                displayErrors(error.response.data.errors);
+            }
+        })
+        .finally(() => {
+
+            var Table = $('#paramerts_list').DataTable();
+                Table.ajax.reload();
+        });
+    }
+    // ****************************************************************************************************************
+
+
+    // ****************************************************************************************************************
+    // 									       Edit
+    // ****************************************************************************************************************
     function edit(value){
 
         axios.get("{{ route('parameter.edit') }}",{
             params: {
-                id: 6
+                id: value
             }
         })
         .then(function (response) {
@@ -188,6 +290,112 @@
             )
         })
     }
+    // ****************************************************************************************************************
+
+
+    // ****************************************************************************************************************
+    // 									       Deleted
+    // ****************************************************************************************************************
+    function deleted(value){
+
+        Swal.fire({
+            title: '¿Está seguro(a) que desea eliminar el parámetro?',
+            text: "Esta acción no es reversible!",
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar!'
+            }).then((result) => {
+                if (result.value) {
+
+                    axios.delete("{{  route('parameter.delete') }}", {
+                        params: {
+                            id: value
+                        }
+                    })
+                    .then(function (response) {
+                        console.log(response);
+                        
+                        Swal.fire(
+                            'Deleted!',
+                            'Your file has been deleted.',
+                            'success'
+                        )
+
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    })
+                    .finally(() => {
+
+                        var Table = $('#paramerts_list').DataTable();
+                            Table.ajax.reload();
+                    });
+                }
+            })
+    }
+    // ****************************************************************************************************************
+
+
+    // ****************************************************************************************************************
+    // 									       Clear
+    // ****************************************************************************************************************
+    function clear(){
+
+        let inputs = ['nombre', 'abreviatura', 'unidad_medida', 'descripcion'];
+
+        inputs.forEach(element => {
+            document.getElementById(element).value = '';
+        });
+    }
+    // ****************************************************************************************************************
+
+
+    // ****************************************************************************************************************
+    // 									       Errors
+    // ****************************************************************************************************************
+    function displayErrors(errors){
+
+        if(typeof errors.nombre !== 'undefined') {
+            create_elements(errors.nombre, 'nombre');
+        }
+        if(typeof errors.abreviatura !== 'undefined') {
+            create_elements(errors.abreviatura, 'abreviatura');
+        }
+        if(typeof errors.unidad_medida !== 'undefined') {
+            create_elements(errors.unidad_medida, 'unidad_medida');
+        }
+        if(typeof errors.descripcion !== 'undefined') {
+            create_elements(errors.descripcion, 'descripcion');
+        }
+    }
+    // ****************************************************************************************************************
+
+     // ****************************************************** Clear Error **********************************************
+     function clearErrors() 
+    {
+        let inputs = ['nombre', 'abreviatura', 'unidad_medida', 'descripcion'];
+
+        inputs.forEach(element => {
+            document.getElementById('text-'+element).innerHTML = '';
+            document.getElementById('error-'+element).classList.add('d-none');
+            document.getElementById(element).classList.remove('is-invalid');
+        });
+    };
+    // *********************************************************************************************************************
+
+    
+    // ****************************************************** Create Elements **********************************************
+    function create_elements(error, input) 
+    {
+        error.forEach(element => {
+            document.getElementById('text-'+input).innerHTML = element;
+            document.getElementById('error-'+input).classList.remove('d-none');
+            document.getElementById(input).classList.add('is-invalid');
+        });
+    };
+    // *********************************************************************************************************************
 
 </script>
 @endsection
