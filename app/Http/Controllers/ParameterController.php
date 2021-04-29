@@ -112,9 +112,34 @@ class ParameterController extends Controller
      * @param  \App\Parameter  $parameter
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Parameter $parameter)
+    public function update(Request $request)
     {
-        //
+        
+        $rules = [
+            'id'            => 'required',
+            'nombre'        => 'required|string|unique:parameters,nombre,'.$request->id,
+            'abreviatura'   => 'required|string',
+            'unidad_medida' => 'required|string',
+            'descripcion'   => 'nullable|string',
+        ];
+
+        try {
+
+            $this->validate($request, $rules);
+
+            $new =  Parameter::find($request->id);
+                $new->nombre        = $request->nombre;
+                $new->abreviatura   = $request->abreviatura;
+                $new->unidad_medida = $request->unidad_medida;
+                $new->descripcion   = $request->descripcion;
+            $new->save();
+            
+            return response()->json(['success' => true], 200);
+
+        }catch (ValidationException $exception) {
+
+            return response()->json(['errors' => $exception->errors()], 422);
+        }
     }
 
     /**

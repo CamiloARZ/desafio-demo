@@ -44,11 +44,11 @@
     </div>
 
     {{-- Modal de ingreso  --}}
-    <div class="modal fade" id="createModal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal fade" id="modal" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                <h5 class="modal-title" id="staticBackdropLabel">Ingresar parametro</h5>
+                <h5 class="modal-title" id="title">Ingresar parametro</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -56,6 +56,10 @@
                 <div class="modal-body">
                     <div class="content">
                         <div class="row">
+
+                            {{-- id  --}}
+                            <input type="hidden" name="id" id="id">
+
                             {{-- Nombre  --}}
                             <div class="col-12">
                                 <div class="form-group">
@@ -118,7 +122,8 @@
                 </div>
                 <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="store()">Ingresar</button>
+                    <button  id="btnstore" type="button" class="btn btn-primary" onclick="store()">Ingresar</button>
+                    <button  id="btnupdate" type="button" class="btn btn-primary" onclick="update()">Guardar</button>
                 </div>
             </div>
         </div>
@@ -213,7 +218,12 @@
     // ****************************************************************************************************************
     function create(){
         clear();
-        $('#createModal').modal('show');
+
+        document.getElementById('title').innerHTML = 'Ingresar parámetro';
+        document.getElementById('btnstore').classList.remove('d-none');
+        document.getElementById('btnupdate').classList.add('d-none');
+
+        $('#modal').modal('show');
     }
     // ****************************************************************************************************************
 
@@ -222,6 +232,7 @@
     // 									       Store
     // ****************************************************************************************************************
     function store(){
+
         axios.post("{{ route('parameter.store') }}", {
             nombre          : document.getElementById('nombre').value,
             abreviatura     : document.getElementById('abreviatura') .value,
@@ -230,7 +241,7 @@
         })
         .then(function (response) {
              
-            $('#createModal').modal('hide');
+            $('#modal').modal('hide');
 
             Swal.fire(
                 'Ingreso exitoso!',
@@ -260,27 +271,26 @@
     // ****************************************************************************************************************
     function edit(value){
 
+
+        document.getElementById('title').innerHTML = 'Actualizar parámetro';
+        document.getElementById('btnstore').classList.add('d-none');
+        document.getElementById('btnupdate').classList.remove('d-none');
+
         axios.get("{{ route('parameter.edit') }}",{
             params: {
                 id: value
             }
         })
         .then(function (response) {
-            console.log(response);
             
-            // 1- asiganar valores a los input 
-            document.getElementById('name').value = response.data.name;
+            document.getElementById('id').value             = response.data.data.id;
+            document.getElementById('nombre').value         = response.data.data.nombre;
+            document.getElementById('abreviatura') .value   = response.data.data.abreviatura;
+            document.getElementById('unidad_medida').value  = response.data.data.unidad_medida;
+            document.getElementById('descripcion').value    = response.data.data.descripcion;
             
-            // 2- abrir el modal 
-            $('#myModal').modal('show');
-            
-            if(response.data.success){
-                Swal.fire(
-                    'Deleted!',
-                    'Your file has been deleted.',
-                    'success'
-                )
-            }
+            $('#modal').modal('show');
+        
         })
         .catch(function (error) {
             Swal.fire(
@@ -292,6 +302,44 @@
     }
     // ****************************************************************************************************************
 
+
+    // ****************************************************************************************************************
+    // 									       Update
+    // ****************************************************************************************************************
+    function update(){
+
+        axios.post("{{ route('parameter.update') }}", {
+            id              : document.getElementById('id').value,
+            nombre          : document.getElementById('nombre').value,
+            abreviatura     : document.getElementById('abreviatura') .value,
+            unidad_medida   : document.getElementById('unidad_medida').value,
+            descripcion     : document.getElementById('descripcion').value
+        })
+        .then(function (response) {
+             
+            $('#modal').modal('hide');
+
+            Swal.fire(
+                'Actualización exitoso!',
+                'Se actualización exitosamente el parámtro.',
+                'success'
+            )
+
+            clearErrors();
+        })
+        .catch(function (error) {
+            if(error.response.status == 422) {
+                clearErrors();
+                displayErrors(error.response.data.errors);
+            }
+        })
+        .finally(() => {
+
+            var Table = $('#paramerts_list').DataTable();
+                Table.ajax.reload();
+        });
+    }
+    // ****************************************************************************************************************
 
     // ****************************************************************************************************************
     // 									       Deleted

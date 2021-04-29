@@ -19,4 +19,5 @@ Route::get('/', 'ParameterController@index')->name('parameter.index');
     Route::delete('parameter/delete', 'ParameterController@parameterDestroy')->name('parameter.delete');
     Route::post('parameter/store', 'ParameterController@store')->name('parameter.store');
     Route::get('parameter/edit', 'ParameterController@edit')->name('parameter.edit');
+    Route::post('parameter/update', 'ParameterController@update')->name('parameter.update');
     Route::post('parameter/store', 'ParameterController@store')->name('parameter.store');
